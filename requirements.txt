@@ -1,5 +1,7 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
-anthropic==0.28.0twilio==8.10.0
-python-dotenv==1.0.0
+anthropic==0.24.0
+twilio==8.10.0python-
+dotenv==1.0.0
+h
