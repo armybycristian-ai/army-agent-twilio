@@ -19,8 +19,10 @@ Tono:
 
 class ArmyBrain:
     def __init__(self):
-        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-
+api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+                        raise ValueError("ANTHROPIC_API_KEY not set")
+                    self.client = anthropic.Anthropic(api_key=api_key)
     def get_response(self, user_message: str, history: list) -> str:
         messages = history + [{"role": "user", "content": user_message}]
         try:
