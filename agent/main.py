@@ -5,7 +5,6 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
 app = FastAPI()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
@@ -17,8 +16,7 @@ TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
 if not all([ANTHROPIC_API_KEY, MY_PERSONAL_NUMBER, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_NUMBER]):
     raise ValueError("Missing required environment variables")
 
-client = Anthropic(api_key=ANTHROPIC_API_KEY)
-twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+anthropic_client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 SYSTEM_PROMPT = """Eres ARMY Agent, asistente de Cristian Fuy (Cris), especialista en AI Marketing y Producción Audiovisual.
 Respuesta: 3-4 líneas máximo en WhatsApp. Español siempre. Tono directo, sin relleno. Tuteo.
@@ -35,13 +33,10 @@ async def webhook_whatsapp(request: Request):
         sender = data.get("From", "").replace("whatsapp:", "")
         message = data.get("Body", "")
         
-        print(f"DEBUG: From={sender}, Body={message}")
-        
         if sender != MY_PERSONAL_NUMBER:
-            print(f"DEBUG: Ignoring {sender}")
             return {"status": "ignored"}
         
-        response = client.messages.create(
+        response = anthropic_client.messages.create(
             model="claude-opus-4-6",
             max_tokens=500,
             system=SYSTEM_PROMPT,
@@ -49,14 +44,13 @@ async def webhook_whatsapp(request: Request):
         )
         
         reply = response.content[0].text
-        
+        twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
         twilio_client.messages.create(
             from_=TWILIO_WHATSAPP_NUMBER,
             to=f"whatsapp:{sender}",
             body=reply
         )
-        
         return {"status": "success"}
+        
     except Exception as e:
-        print(f"ERROR: {str(e)}")
         return {"status": "error", "message": str(e)}
